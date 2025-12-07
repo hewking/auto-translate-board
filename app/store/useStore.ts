@@ -46,9 +46,9 @@ export const useStore = create<AppState>()(
   persist(
     (set) => ({
       apiKey: '',
-      baseUrl: 'https://api.openai.com/v1',
+      baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
       provider: 'openai',
-      model: 'gpt-3.5-turbo', // Default, can be user configurable later
+      model: 'gemini-2.0-flash-exp', // Fast and robust
       
       sttLang: 'zh-CN',
       

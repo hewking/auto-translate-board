@@ -26,11 +26,14 @@ export async function* translateTextStream(
     "4. Maintain the tone and context.";
 
   try {
-    const response = await fetch(`${baseUrl}/chat/completions`, {
+    const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${apiKey.trim()}`,
+        'x-target-url': baseUrl.replace(/\/chat\/completions$/, ''), // Strip endpoint if user added it, or just use base. 
+        // Actually, store usually has '.../v1', and proxy appends '/chat/completions'.
+        // Let's ensure consistency.
       },
       body: JSON.stringify({
         model: model,
@@ -45,7 +48,14 @@ export async function* translateTextStream(
     if (!response.ok) {
       const errorText = await response.text();
       console.error('LLM API Error:', errorText);
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      // Try to parse JSON error if possible
+      try {
+          const errorJson = JSON.parse(errorText);
+          const msg = errorJson.error?.message || errorText;
+          throw new Error(`API Error ${response.status}: ${msg}`);
+      } catch (e) {
+          throw new Error(`API Error ${response.status}: ${errorText.substring(0, 100)}...`);
+      }
     }
 
     if (!response.body) throw new Error('No response body');

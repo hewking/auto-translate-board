@@ -54,9 +54,9 @@ export default function Home() {
         fullTranslation += chunk;
         updateSegment(newId, { translation: fullTranslation });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Translation failed', error);
-      updateSegment(newId, { translation: '[Error]' });
+      updateSegment(newId, { translation: `[${error.message || 'Error'}]` });
     }
 
   }, [apiKey, baseUrl, model, sttLang, addSegment, updateSegment]);

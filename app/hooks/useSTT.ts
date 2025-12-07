@@ -56,6 +56,12 @@ export function useSTT({ lang, onInterimResult, onFinalResult }: UseSTTProps) {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const shouldBeListeningRef = useRef(false); // To track user intent vs API state
 
+  const callbackRef = useRef({ onInterimResult, onFinalResult });
+
+  useEffect(() => {
+    callbackRef.current = { onInterimResult, onFinalResult };
+  }, [onInterimResult, onFinalResult]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -71,6 +77,7 @@ export function useSTT({ lang, onInterimResult, onFinalResult }: UseSTTProps) {
     recognition.lang = lang;
 
     recognition.onstart = () => {
+      console.log('STT Started');
       setIsListening(true);
     };
 
@@ -79,21 +86,23 @@ export function useSTT({ lang, onInterimResult, onFinalResult }: UseSTTProps) {
 
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         if (event.results[i].isFinal) {
-          onFinalResult(event.results[i][0].transcript);
+          callbackRef.current.onFinalResult(event.results[i][0].transcript);
         } else {
           interimTranscript += event.results[i][0].transcript;
         }
       }
       
       if (interimTranscript) {
-        onInterimResult(interimTranscript);
+        callbackRef.current.onInterimResult(interimTranscript);
       }
     };
 
     recognition.onend = () => {
+        console.log('STT Ended');
         setIsListening(false);
         // Auto-restart if we are supposed to be listening
         if (shouldBeListeningRef.current) {
+            console.log('STT Auto-restarting...');
             try {
                 recognition.start();
             } catch (e) {
@@ -113,10 +122,10 @@ export function useSTT({ lang, onInterimResult, onFinalResult }: UseSTTProps) {
     recognitionRef.current = recognition;
 
     return () => {
-        shouldBeListeningRef.current = false;
+        // Only stop if we are unmounting or lang changes
         recognition.abort();
     };
-  }, [lang, onFinalResult, onInterimResult]);
+  }, [lang]); // Only re-run if lang changes
 
   // Update lang dynamically if it changes while listening
   useEffect(() => {
