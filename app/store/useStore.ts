@@ -46,9 +46,9 @@ export const useStore = create<AppState>()(
   persist(
     (set) => ({
       apiKey: '',
-      baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+      baseUrl: 'https://api.siliconflow.cn/v1',
       provider: 'openai',
-      model: 'gemini-2.0-flash-exp', // Fast and robust
+      model: 'deepseek-ai/DeepSeek-V3', // Powerful and fast
       
       sttLang: 'zh-CN',
       
